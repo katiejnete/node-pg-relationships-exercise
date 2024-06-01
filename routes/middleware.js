@@ -1,5 +1,6 @@
 const ExpressError = require("../expressError");
 const db = require("../db");
+const slugify = require("slugify")
 
 async function findCompany(req, res, next) {
   try {
@@ -29,7 +30,18 @@ async function findInvoice(req, res, next) {
 
 async function checkDuplicateCompany(req, res, next) {
   try {
-    const { code, name } = req.body;
+    let { name } = req.body;
+    let code = name.replace("$","");
+    if (name.includes(" ")) {
+      code = code.slice(0,name.indexOf(" "));
+    }
+    code = slugify(code, {
+      replacement: '',
+      remove: /[.*+~?^${}()|[\]\\'"!:@]]/g,
+      lower: true,
+      strict: true,
+      trim: true
+    });
     const codeResult = await db.query(
       `SELECT * FROM companies WHERE code = $1`,
       [code]
@@ -51,10 +63,10 @@ async function checkDuplicateCompany(req, res, next) {
 
 function validateCompany(req, res, next) {
   try {
-    const { code, name } = req.body;
+    const { name, description } = req.body;
     if (req.method === "POST") {
-      if (!code || !name) throw new ExpressError(`Cannot create/replace because missing code and/or name data`,422);
-      if (typeof code !== 'string' || typeof name !== 'string') throw new ExpressError(`Please enter code and/or name as text`, 422);
+      if (!name) throw new ExpressError(`Cannot create/replace because missing code and/or name data`,422);
+      if (typeof description !== 'string' || typeof name !== 'string') throw new ExpressError(`Please enter name and/or description as text`, 422);
     }
     else if (req.method === "PUT") {
       if (!name) throw new ExpressError(`Cannot replace because missing name data`, 304);
