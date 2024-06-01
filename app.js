@@ -3,6 +3,7 @@
 const express = require("express");
 const companyRoutes = require("./routes/companies");
 const invoiceRoutes = require("./routes/invoices");
+const industryRoutes = require("./routes/industries");
 const app = express();
 const ExpressError = require("./expressError");
 
@@ -10,6 +11,7 @@ app.use(express.json());
 app.get("/favicon.ico", (req,res) => res.sendStatus(204));
 app.use("/companies", companyRoutes)
 app.use("/invoices", invoiceRoutes)
+app.use("/industries", industryRoutes)
 
 
 /** 404 handler */

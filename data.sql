@@ -21,7 +21,7 @@ CREATE TABLE invoices (
 
 CREATE TABLE industries (
   code text PRIMARY KEY,
-  industry text NOT NULL UNIQUE
+  name text NOT NULL UNIQUE
 );
 
 CREATE TABLE companies_industries (
