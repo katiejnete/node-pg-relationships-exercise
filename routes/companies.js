@@ -1,6 +1,5 @@
 const express = require("express");
 const router = new express.Router();
-const ExpressError = require("../expressError");
 const db = require("../db");
 const {
   findCompany,
@@ -21,22 +20,25 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:code", findCompany, async (req, res, next) => {
   try {
+    const code = req.params.code;
     const companyResult = await db.query(
-      `SELECT code, name, description FROM companies WHERE code = $1`,
-      [req.params.code]
+      `SELECT * FROM companies WHERE code = $1`,
+      [code]
     );
     const invoiceResults = await db.query(
       `SELECT id, amt, paid, add_date, paid_date FROM invoices WHERE comp_code = $1`,
-      [req.params.code]
+      [code]
     );
     const industryResults = await db.query(
       `SELECT name FROM industries as i JOIN companies_industries as ci ON i.code = ci.industry_code WHERE comp_code = $1`,
-      [req.params.code]
+      [code]
     );
-    const company = companyResult.rows[0];
-    company.invoices = invoiceResults.rows;
-    company.industries = industryResults.rows.map((r) => r.name);
-    return res.json({ company });
+    Promise.all([companyResult, invoiceResults, industryResults]).then(() => {
+      const company = companyResult.rows[0];
+      company.invoices = invoiceResults.rows;
+      company.industries = industryResults.rows.map((r) => r.name);
+      return res.json({ company });
+    });
   } catch (err) {
     return next(err);
   }
@@ -48,7 +50,7 @@ router.post(
   checkDuplicateCompany,
   async (req, res, next) => {
     try {
-      const { name, code, description } = req.body;
+      const { code, name, description } = req.body;
       const result = await db.query(
         "INSERT INTO companies (code, name, description) VALUES ($1, $2, $3) RETURNING *",
         [code, name, description]
@@ -84,6 +86,7 @@ router.delete("/:code", findCompany, async (req, res, next) => {
   }
 });
 
+// Associate an industry to a company.
 router.post(
   "/:code/industries",
   findCompany,
@@ -98,20 +101,23 @@ router.post(
         [comp_code, industry_code]
       );
       const companyResult = await db.query(
-        `SELECT code, name, description FROM companies WHERE code = $1`,
-        [req.params.code]
+        `SELECT * FROM companies WHERE code = $1`,
+        [comp_code]
       );
       const invoiceResults = await db.query(
         `SELECT id, amt, paid, add_date, paid_date FROM invoices WHERE comp_code = $1`,
-        [req.params.code]
+        [comp_code]
       );
       const industryResults = await db.query(
         `SELECT name FROM industries as i JOIN companies_industries as ci ON i.code = ci.industry_code WHERE comp_code = $1`,
-        [req.params.code]
+        [comp_code]
       );
-      const company = companyResult.rows[0];
-      company.invoices = invoiceResults.rows;
-      company.industries = industryResults.rows.map((r) => r.name);
+      Promise.all([companyResult, invoiceResults, industryResults]).then(() => {
+        const company = companyResult.rows[0];
+        company.invoices = invoiceResults.rows;
+        company.industries = industryResults.rows.map((r) => r.name);
+        return res.json({ company });
+      });
       return res.json({ company });
     } catch (err) {
       return next(err);
