@@ -3,7 +3,6 @@ const router = new express.Router();
 const ExpressError = require("../expressError");
 const db = require("../db");
 const {
-  findCompany,
   checkDuplicateIndustry,
   validateIndustry,
 } = require("./middleware");

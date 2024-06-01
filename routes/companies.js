@@ -7,9 +7,8 @@ const {
   checkDuplicateCompany,
   validateCompany,
   validateIndustry,
-  findCheckIndustry
+  findCheckIndustry,
 } = require("./middleware");
-const slugify = require("slugify");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -36,7 +35,8 @@ router.get("/:code", findCompany, async (req, res, next) => {
     );
     const company = companyResult.rows[0];
     company.invoices = invoiceResults.rows;
-    company.industries = industryResults.rows.map(r => r.name);    return res.json({ company });
+    company.industries = industryResults.rows.map((r) => r.name);
+    return res.json({ company });
   } catch (err) {
     return next(err);
   }
@@ -60,7 +60,7 @@ router.post(
   }
 );
 
-router.put("/:code", findCompany, validateCompany, async (req, res, next) => {
+router.put("/:code", validateCompany, findCompany, async (req, res, next) => {
   try {
     const { name, description } = req.body;
     const result = await db.query(
@@ -111,7 +111,7 @@ router.post(
       );
       const company = companyResult.rows[0];
       company.invoices = invoiceResults.rows;
-      company.industries = industryResults.rows.map(r => r.name);
+      company.industries = industryResults.rows.map((r) => r.name);
       return res.json({ company });
     } catch (err) {
       return next(err);
