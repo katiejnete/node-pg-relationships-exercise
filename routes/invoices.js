@@ -41,11 +41,21 @@ router.post("/", findCompany, validateInvoice, async (req, res, next) => {
 
 router.put("/:id", findInvoice, validateInvoice, async (req, res, next) => {
   try {
-    const { amt } = req.body;
-    const result = await db.query(
-      `UPDATE invoices SET amt = $1 WHERE id = $2 RETURNING *`,
-      [amt, req.params.id]
-    );
+    const { amt, paid } = req.body;
+    let paid_date;
+    let result;
+    paid_date = paid ? new Date().toDateString() : null;
+    if (paid || paid === false) {
+      result = await db.query(
+        `UPDATE invoices SET amt = $1, paid = $2, paid_date = $3 WHERE id = $4 RETURNING *`,
+        [amt, paid, paid_date, req.params.id]
+      );
+    } else if (paid === undefined) {
+      result = await db.query(
+        `UPDATE invoices SET amt = $1 WHERE id = $2 RETURNING *`,
+        [amt, req.params.id]
+      );
+    }
     return res.status(201).json({ invoice: result.rows[0] });
   } catch (err) {
     return next(err);

@@ -80,12 +80,15 @@ function validateCompany(req, res, next) {
 
 function validateInvoice(req, res, next) {
   try {
-    const { comp_code, amt } = req.body;
+    const { comp_code, amt, paid } = req.body;
     if (req.method === "POST") {
       if (!comp_code || !amt) throw new ExpressError(`Cannot create/replace because missing comp_code and/or amt data`,422);
     }
     else if (req.method === "PUT") {
-      if (!amt) throw new ExpressError(`Cannot replace because missing amt data`, 304);
+      if (!amt) throw new ExpressError(`Cannot replace because missing amt and/or paid data`, 304);
+      if (paid) {
+        if (typeof paid !== 'boolean') throw new ExpressError(`Please enter paid as a boolean`, 422);
+      }
     } 
     if (typeof amt !== 'number') throw new ExpressError(`Please enter amt as a number`, 422);
     else next();
