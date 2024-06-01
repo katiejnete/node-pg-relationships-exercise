@@ -22,6 +22,10 @@ app.use(function(req, res, next) {
 /** general error handler */
 
 app.use((err, req, res, next) => {
+  if (err.message.includes("is not defined")) {
+    err.status = 400;
+    err.message = "Please follow endpoint JSON data format";
+  }
   res.status(err.status || 500);
 
   return res.json({

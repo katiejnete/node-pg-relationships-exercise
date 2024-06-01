@@ -30,7 +30,7 @@ router.get("/:code", findCompany, async (req, res, next) => {
 
 router.post("/", checkDuplicateCompany, validateCompany, async (req, res, next) => {
   try {
-    const { code, name, description } = req.body;
+    const { name, description } = req.body;
     const result = await db.query(
       "INSERT INTO companies (code, name, description) VALUES ($1, $2, $3) RETURNING *",
       [code, name, description]
