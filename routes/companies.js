@@ -5,9 +5,11 @@ const {
   findCompany,
   checkDuplicateCompany,
   validateCompany,
+} = require("../middleware/companies");
+const {
   validateIndustry,
   findCheckIndustry,
-} = require("./middleware");
+} = require("../middleware/industries");
 
 router.get("/", async (req, res, next) => {
   try {

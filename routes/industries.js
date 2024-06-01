@@ -4,7 +4,7 @@ const db = require("../db");
 const {
   checkDuplicateIndustry,
   validateIndustry,
-} = require("./middleware");
+} = require("../middleware/industries");
 
 router.get("/", async (req, res, next) => {
   try {

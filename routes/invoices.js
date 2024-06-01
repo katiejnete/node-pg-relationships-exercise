@@ -1,7 +1,8 @@
 const express = require("express");
 const router = new express.Router();
 const db = require("../db");
-const { findCompany, findInvoice, validateInvoice } = require("./middleware");
+const { findCompany } = require("../middleware/companies");
+const { findInvoice, validateInvoice } = require("../middleware/invoices");
 
 router.get("/", async (req, res, next) => {
   try {
