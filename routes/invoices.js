@@ -19,8 +19,18 @@ router.get("/:id", findInvoice, async (req, res, next) => {
       `SELECT id, amt, paid, add_date, paid_date, code, name, description FROM invoices JOIN companies ON invoices.comp_code = companies.code WHERE id = $1`,
       [req.params.id]
     );
-    const {id, amt, paid, add_date, paid_date, code, name, description} = result.rows[0];
-    return res.json({invoice: {id, amt, paid, add_date, paid_date, company: {code, name, description}}});
+    const { id, amt, paid, add_date, paid_date, code, name, description } =
+      result.rows[0];
+    return res.json({
+      invoice: {
+        id,
+        amt,
+        paid,
+        add_date,
+        paid_date,
+        company: { code, name, description },
+      },
+    });
   } catch (err) {
     return next(err);
   }
@@ -45,15 +55,15 @@ router.put("/:id", findInvoice, validateInvoice, async (req, res, next) => {
     let paid_date;
     let result;
     paid_date = paid ? new Date().toDateString() : null;
-    if (paid || paid === false) {
-      result = await db.query(
-        `UPDATE invoices SET amt = $1, paid = $2, paid_date = $3 WHERE id = $4 RETURNING *`,
-        [amt, paid, paid_date, req.params.id]
-      );
-    } else if (paid === undefined) {
+    if (paid === undefined) {
       result = await db.query(
         `UPDATE invoices SET amt = $1 WHERE id = $2 RETURNING *`,
         [amt, req.params.id]
+      );
+    } else {
+      result = await db.query(
+        `UPDATE invoices SET amt = $1, paid = $2, paid_date = $3 WHERE id = $4 RETURNING *`,
+        [amt, paid, paid_date, req.params.id]
       );
     }
     return res.status(201).json({ invoice: result.rows[0] });

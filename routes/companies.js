@@ -31,18 +31,7 @@ router.get("/:code", findCompany, async (req, res, next) => {
 
 router.post("/", checkDuplicateCompany, validateCompany, async (req, res, next) => {
   try {
-    let { name, description } = req.body;
-    let code = name.replace("$","");
-    if (name.includes(" ")) {
-      code = code.slice(0,name.indexOf(" "));
-    }
-    code = slugify(code, {
-      replacement: '',
-      remove: /[.*+~?^${}()|[\]\\'"!:@]]/g,
-      lower: true,
-      strict: true,
-      trim: true
-    });
+    const { name, code, description } = req.body;
     const result = await db.query(
       "INSERT INTO companies (code, name, description) VALUES ($1, $2, $3) RETURNING *",
       [code, name, description]
