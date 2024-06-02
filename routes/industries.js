@@ -21,7 +21,7 @@ router.post(
   checkDuplicateIndustry,
   async (req, res, next) => {
     try {
-      const { code, name } = req.body;
+      const { code, name } = res.locals.industry;
       const result = await db.query(
         "INSERT INTO industries (code, name) VALUES ($1, $2) RETURNING *",
         [code, name]

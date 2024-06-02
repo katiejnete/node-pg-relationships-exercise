@@ -25,8 +25,7 @@ async function checkDuplicateIndustry(req, res, next) {
         `Cannot create because industry code and/or name already exists`,
         409
       );
-    req.body.name = name;
-    req.body.code = code;
+    res.locals.industry = {name, code};
     next();
   } catch (err) {
     next(err);
@@ -51,8 +50,8 @@ async function findCheckIndustry(req,res,next) {
 function validateIndustry(req, res, next) {
   try {
     if (req.method === "POST") {
-      const {industry_code} = req.body;
-      if (!industry_code)
+      const code = req.body.code || req.body.industry_code;
+      if (!code)
         throw new ExpressError(
           `Cannot add association because missing industry code data`,
           422
