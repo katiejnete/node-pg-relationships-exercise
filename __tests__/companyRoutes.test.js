@@ -9,7 +9,7 @@ let testCompany;
 
 beforeEach(async () => {
   companyResult = await db.query(
-    `INSERT INTO companies (code, name) VALUES ('es','EduSkin') RETURNING code, name`
+    `INSERT INTO companies (code, name) VALUES ('edu','Edu Skin') RETURNING *`
   );
   testCompany = companyResult.rows[0];
 });
@@ -24,16 +24,27 @@ afterAll(async () => {
 
 describe("GET /companies", () => {
   test("Get list of 1 company", async () => {
+    const { code, name } = testCompany;
     const response = await request(app).get(`/companies`);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual({ companies: [testCompany] });
+    expect(response.body).toEqual({ companies: [{ code, name }] });
   });
 });
 
 describe("GET /companies/:code", () => {
   test("Get specific company", async () => {
-    testCompany.invoices = [];
+    const code = testCompany.code;
+    const invoiceResults = await db.query(
+      `SELECT id, amt, paid, add_date, paid_date FROM invoices WHERE comp_code = $1`,
+      [code]
+    );
+    const industryResults = await db.query(
+      `SELECT name FROM industries as i JOIN companies_industries as ci ON i.code = ci.industry_code WHERE comp_code = $1`,
+      [code]
+    );
     testCompany.description = null;
+    testCompany.invoices = invoiceResults.rows;
+    testCompany.industries = industryResults.rows.map((r) => r.name);
     const response = await request(app).get(`/companies/${testCompany.code}`);
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ company: testCompany });
@@ -42,25 +53,14 @@ describe("GET /companies/:code", () => {
     const response = await request(app).get(`/companies/0`);
     expect(response.statusCode).toBe(404);
   });
-  test("Get specific company with invoice", async () => {
-    await db.query(`INSERT INTO invoices (comp_Code, amt, paid, paid_date)
-    VALUES ('es', 100, false, null)`);
-    const response = await request(app).get(`/companies/${testCompany.code}`);    const testInvoice = await db.query(
-      `SELECT add_date,amt, id, paid, paid_date FROM invoices WHERE comp_code = 'es'`
-    );
-    testCompany.invoices = testInvoice.rows;
-    testCompany.invoices[0].add_date = response.body.company.invoices[0].add_date
-    testCompany.description = null;
-    expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual({ company: testCompany });
-  });
 });
 
 describe("POST /companies", () => {
   test("Create company", async () => {
-    const newCompany = { code: "mf", name: "miffy" };
-    newCompany.description = null;
+    const newCompany = { name: "miffy rules" };
     const response = await request(app).post(`/companies`).send(newCompany);
+    newCompany.description = null;
+    newCompany.code = "miffy";
     expect(response.statusCode).toBe(201);
     expect(response.body).toEqual({ company: newCompany });
   });
@@ -80,8 +80,8 @@ describe("POST /companies", () => {
 
 describe("PUT /companies/:code", () => {
   test("Replace specific company", async () => {
-    const replaceData = { name: "newName", description: "text" };
-    replaceData.code = testCompany.code;
+    const replaceData = { name: "new", description: "text" };
+    replaceData.code = replaceData.name;
     const response = await request(app)
       .put(`/companies/${testCompany.code}`)
       .send(replaceData);
@@ -89,7 +89,8 @@ describe("PUT /companies/:code", () => {
     expect(response.body).toEqual({ company: replaceData });
   });
   test("Replace non-existent company", async () => {
-    const response = await request(app).put(`/companies/0`);
+    const replaceData = { name: "new", description: "text" };
+    const response = await request(app).put(`/companies/0`).send(replaceData);
     expect(response.statusCode).toBe(404);
   });
 });

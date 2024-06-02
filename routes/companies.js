@@ -65,7 +65,7 @@ router.post(
   }
 );
 
-router.put("/:code", validateCompany, checkDuplicateCompany, async (req, res, next) => {
+router.put("/:code", findCompany, validateCompany, checkDuplicateCompany, async (req, res, next) => {
   try {
     const { description } = req.body;
     const { code, name } = res.locals.slug;
