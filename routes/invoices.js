@@ -49,7 +49,7 @@ router.post("/", validateInvoice, findCompany, async (req, res, next) => {
   }
 });
 
-router.put("/:id", validateInvoice, findInvoice, async (req, res, next) => {
+router.put("/:id",findInvoice, validateInvoice, async (req, res, next) => {
   try {
     const { amt, paid } = req.body;
     let paid_date;
