@@ -43,8 +43,7 @@ async function checkDuplicateCompany(req, res, next) {
         `Cannot create because company code and/or name already exists`,
         409
       );
-    req.body.name = name;
-    req.body.code = code;
+    res.locals.slug = {code, name};
     next();
   } catch (err) {
     next(err);

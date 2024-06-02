@@ -52,7 +52,8 @@ router.post(
   checkDuplicateCompany,
   async (req, res, next) => {
     try {
-      const { code, name, description } = req.body;
+      const { description } = req.body;
+      const { code, name } = res.locals.slug;
       const result = await db.query(
         "INSERT INTO companies (code, name, description) VALUES ($1, $2, $3) RETURNING *",
         [code, name, description]
@@ -64,12 +65,13 @@ router.post(
   }
 );
 
-router.put("/:code", validateCompany, findCompany, async (req, res, next) => {
+router.put("/:code", validateCompany, checkDuplicateCompany, async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { description } = req.body;
+    const { code, name } = res.locals.slug;
     const result = await db.query(
-      `UPDATE companies SET name = $1, description = $2 WHERE code = $3 RETURNING *`,
-      [name, description, req.params.code]
+      `UPDATE companies SET code = $1, name = $2, description = $3 WHERE code = $4 RETURNING *`,
+      [code, name, description, req.params.code]
     );
     return res.status(201).json({ company: result.rows[0] });
   } catch (err) {
